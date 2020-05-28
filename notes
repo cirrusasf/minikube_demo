@@ -1,0 +1,102 @@
+#create a demo 
+
+#remove a env
+
+conda remove --name=demo --all
+
+#create demo env
+
+conda create -n demo
+
+conda activate demo
+
+#install packages
+
+conda install pip
+
+conda install flask
+
+conda install -c conda-forge uwsgi
+
+#run flask by uwsgi
+
+uwsgi --http 127.0.0.1:3031 --wsgi-file main.py --callable app --processes 4 --threads 2 --stats 127.0.0.1:9191
+
+#create requirements.txt
+
+pip freeze > requirements.txt
+
+#create Dockerfile
+
+
+#when flask with built-in wsgi server flask
+
+app.run()   not work
+
+app.run(host='0.0.0.0') # works! run app.run(host='0.0.0.0') make the server publicly available.
+
+#when use uwsgi as wsgi server
+in the .ini,
+
+http = 0.0.0.0
+
+#build image
+
+docker build -t johnzhu999/demo .
+
+#run to make sure it work
+
+docker run -d --name demo -p 4041:3031 johnzhu999/demo
+
+access http://127.0.0.1:4041   
+
+returns "Hello from Python!" works!
+
+#push to docker hub
+
+login to docker hub
+
+create repo demo
+
+in local machine
+
+docker login
+
+docker push johnzhu999/demo 
+
+#deploy to minikube
+
+#create a deployment
+kubectl create deployment demo --image=johnzhu999/demo
+#expose port
+kubectl expose deployment demo --type=LoadBalancer --port=5000  #5000 is the port that docker container is listening to. it is decided by demo.ini or simply decided by app.run(host='0.0.0.0', port='5000')
+
+#batch deploy docker
+
+inside deplyment.yaml
+
+ ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000
+  type: NodePort
+
+
+      containers:
+      - name: demo
+        image: johnzhu999/demo
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+
+kubectl apply -f deployment.yaml
+
+#test if loadBalancer work
+#
+kubectl apply -f deployment.loadbalancer.yaml
+
+works!
+
+
+
+
